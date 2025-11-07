@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Simulador de Hacking — Painel</title>
+<meta name="description" content="Simulador de hacking — ambiente de demonstração">
+<link rel="icon" href="https://lumi.new/lumi.ing/logo.png">
+
+<style>
+/* Single-file: layout + estilos */
+:root{
+  /* background apontando para seu domínio de teste */
+  --bg-url: url('https://yb5mjoke-zjfo6qub-hacking-simulator.lumi.ing/assets/bg.jpg');
+  --bg-fallback: url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1600&q=80');
+  --overlay: rgba(4,8,15,0.62);
+  --accent: #00d4b4;
+  --muted: #9aa6b2;
+  --card: rgba(11,17,32,0.72);
+  --glass: rgba(255,255,255,0.03);
+  --radius: 12px;
+  --glass-border: rgba(255,255,255,0.04);
+  --text: #e6f0f1;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,"Helvetica Neue",Arial;}
+body{
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  background-image: var(--bg-url), var(--bg-fallback);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position:relative;
+}
+body::before{
+  content:''; position:fixed; inset:0; z-index:0;
+  background: linear-gradient(180deg, rgba(2,6,10,0.28), rgba(2,6,10,0.6));
+  pointer-events:none;
+}
+.wrap{position:relative; z-index:1; max-width:1200px; margin:28px auto; padding:18px;}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-logo{width:56px;height:56px;border-radius:12px;object-fit:cover;box-shadow:0 12px 34px rgba(0,0,0,0.6)}
+.title{font-weight:800;font-size:20px;letter-spacing:0.2px}
+.subtitle{font-size:13px;color:var(--muted);margin-top:2px}
+.main-grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
+@media(max-width:920px){ .main-grid{grid-template-columns:1fr} .right-panel{order:2} }
+.card{background: linear-gradient(180deg, rgba(14,20,30,0.65), rgba(8,12,18,0.6)); border-radius:var(--radius); padding:16px; box-shadow:0 10px 36px rgba(0,0,0,0.65); border:1px solid var(--glass-border)}
+.panel-title{font-size:15px;font-weight:700}
+.control-row{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.control-row label{font-size:13px;color:var(--muted)}
+.control-row input, .control-row select{padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:14px}
+.buttons-row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+button{padding:10px 14px;border-radius:10px;border:0;font-weight:800;cursor:pointer;box-shadow:0 8px 18px rgba(0,0,0,0.45);font-size:14px}
+button.primary{background:linear-gradient(90deg,var(--accent),#06b6d4); color:#042}
+button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06); color:var(--muted)}
+button:hover{transform:translateY(-3px);transition:all .18s ease}
+button:active{transform:translateY(0)}
+.log-card{margin-top:14px}
+.log-title{font-weight:700;margin-bottom:8px}
+#logbox{height:360px;border-radius:10px;background:rgba(0,0,0,0.2);padding:12px;overflow:auto;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,monospace;font-size:13px;color:#cfeee6;white-space:pre-wrap}
+.right-panel .status{display:flex;flex-direction:column;gap:10px}
+.status-row{display:flex;justify-content:space-between;align-items:center}
+.status-value.ok{color:#9ff3d6;font-weight:800}
+.status-value.exec{color:#ffd480;font-weight:800}
+.muted{color:var(--muted);font-size:13px}
+.small-select{width:100%;padding:10px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.04);color:inherit;margin-top:6px}
+.actions-vertical{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.about{margin-top:12px}
+.footer{text-align:center;margin-top:22px;color:var(--muted);font-size:13px}
+@media(max-width:480px){
+  .brand-logo{width:48px;height:48px}
+  .title{font-size:18px}
+  #logbox{height:220px}
+}
+</style>
+</head>
+<body>
+  <div class="wrap" role="main">
+    <header class="topbar" role="banner">
+      <div class="brand" role="img" aria-label="Logo">
+        <img class="brand-logo" src="https://lumi.new/lumi.ing/logo.png" alt="logo">
+        <div>
+          <div class="title">Simulador de Hacking</div>
+          <div class="subtitle">Painel de acesso — demonstração</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button id="btn-help" class="ghost" aria-label="Ajuda">Ajuda</button>
+      </div>
+    </header>
+
+    <main class="main-grid" role="main">
+      <section class="panel left-panel card" aria-labelledby="painel-title">
+        <h2 id="painel-title" class="panel-title">Painel</h2>
+
+        <div class="control-row">
+          <label for="target">Alvo</label>
+          <input id="target" placeholder="ex: 192.168.0.10" aria-label="Alvo">
+        </div>
+
+        <div class="control-row">
+          <label for="script">Script</label>
+          <select id="script" aria-label="Script">
+            <option value="scan">Scannear portas</option>
+            <option value="brute">Teste de força bruta</option>
+            <option value="phish">Campanha de phishing (simulada)</option>
+          </select>
+        </div>
+
+        <div class="buttons-row" role="toolbar" aria-label="Ações">
+          <button id="btn-run" class="primary" aria-pressed="false">Executar</button>
+          <button id="btn-stop" class="ghost">Parar</button>
+          <button id="btn-clear" class="ghost">Limpar</button>
+        </div>
+
+        <div class="log-card card" style="margin-top:14px;">
+          <div class="log-title">Logs de execução</div>
+          <pre id="logbox" aria-live="polite">[aguardando]</pre>
+        </div>
+      </section>
+
+      <aside class="panel right-panel" aria-labelledby="status-title">
+        <div class="card status" role="region" aria-label="Status do sistema">
+          <div class="status-row">
+            <div id="status-title" class="status-label">Status do sistema</div>
+            <div id="system-status" class="status-value ok">OK</div>
+          </div>
+
+          <div class="muted">Tempo de atividade: <span id="uptime">--</span></div>
+          <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:10px 0">
+
+          <div class="muted small">Idioma</div>
+          <select id="lang" class="small-select" aria-label="Idioma">
+            <option value="pt-BR">Português (Brasil)</option>
+            <option value="en">English</option>
+            <option value="es">Español</option>
+          </select>
+
+          <div class="actions-vertical">
+            <button id="btn-download" class="ghost">Baixar relatório</button>
+            <button id="btn-copy" class="ghost">Copiar logs</button>
+          </div>
+        </div>
+
+        <div class="card about">
+          <strong>Sobre</strong>
+          <p class="muted" style="margin:6px 0 0">Ambiente de demonstração — não execute ações reais.</p>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="footer">Feito com ❤️ — Sua Equipe</footer>
+  </div>
+
+<script>
+(function(){
+  'use strict';
+  const logbox = document.getElementById('logbox');
+  const btnRun = document.getElementById('btn-run');
+  const btnStop = document.getElementById('btn-stop');
+  const btnClear = document.getElementById('btn-clear');
+  const btnDownload = document.getElementById('btn-download');
+  const btnCopy = document.getElementById('btn-copy');
+  const btnHelp = document.getElementById('btn-help');
+  const targetInput = document.getElementById('target');
+  const scriptSelect = document.getElementById('script');
+  const uptimeEl = document.getElementById('uptime');
+  const systemStatus = document.getElementById('system-status');
+  const langSelect = document.getElementById('lang');
+
+  let running = false;
+  let fakeTimer = null;
+
+  function appendLine(text){
+    if(!logbox.textContent || logbox.textContent === '[aguardando]') logbox.textContent = '';
+    logbox.textContent += (logbox.textContent ? '\n' : '') + text;
+    logbox.scrollTop = logbox.scrollHeight;
+  }
+
+  function typeLine(text, speed = 8, cb){
+    let i = 0;
+    let current = '';
+    const base = logbox.textContent.endsWith('\n') || logbox.textContent === '' ? '' : logbox.textContent + '\n';
+    const interval = setInterval(()=>{
+      current += text[i] || '';
+      logbox.textContent = base + current;
+      logbox.scrollTop = logbox.scrollHeight;
+      i++;
+      if(i > text.length){
+        clearInterval(interval);
+        appendLine('');
+        if(cb) cb();
+      }
+    }, speed);
+  }
+
+  btnRun.addEventListener('click', ()=>{
+    if(running){ appendLine('[warn] já em execução'); return; }
+    running = true;
+    systemStatus.textContent = 'EXECUTANDO';
+    systemStatus.className = 'status-value exec';
+
+    const target = targetInput.value.trim() || '127.0.0.1';
+    const script = scriptSelect.value;
+    typeLine('[executando] iniciando "'+script+'" contra '+target+' — '+ new Date().toLocaleTimeString(), 6, ()=>{
+      appendLine('[info] enviando pacotes...');
+    });
+
+    let step = 0;
+    fakeTimer = setInterval(()=>{
+      step++;
+      appendLine('[progress] etapa ' + step + ' / 5');
+      if(step >= 5){
+        clearInterval(fakeTimer);
+        running = false;
+        systemStatus.textContent = 'OK';
+        systemStatus.className = 'status-value ok';
+        appendLine('[ok] simulação concluída — ' + new Date().toLocaleTimeString());
+      }
+    }, 900);
+  });
+
+  btnStop.addEventListener('click', ()=>{
+    if(!running){ appendLine('[warn] nada em execução'); return; }
+    running = false;
+    clearInterval(fakeTimer);
+    appendLine('[parado] simulação interrompida pelo usuário');
+    systemStatus.textContent = 'OK';
+    systemStatus.className = 'status-value ok';
+  });
+
+  btnClear.addEventListener('click', ()=>{ logbox.textContent = '[aguardando]'; });
+
+  btnDownload && btnDownload.addEventListener('click', ()=>{
+    const blob = new Blob([logbox.textContent], {type:'text/plain;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'relatorio-simulacao.txt';
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  });
+
+  btnCopy && btnCopy.addEventListener('click', ()=>{
+    if(!navigator.clipboard){ appendLine('[erro] API de área de transferência indisponível'); return; }
+    navigator.clipboard.writeText(logbox.textContent).then(()=> appendLine('[ok] logs copiados para a área de transferência')).catch(()=> appendLine('[erro] não foi possível copiar'));
+  });
+
+  btnHelp && btnHelp.addEventListener('click', ()=> alert('Ajuda: este é um simulador. Todas as ações são fictícias.'));
+
+  let start = Date.now();
+  setInterval(()=> {
+    const s = Math.floor((Date.now()-start)/1000);
+    const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+    uptimeEl.textContent = `${h}h ${m}m ${sec}s`;
+  }, 1000);
+
+  langSelect.addEventListener('change', (e)=>{
+    const v = e.target.value;
+    if(v === 'pt-BR') return;
+    if(v === 'en'){
+      document.querySelector('.title').textContent = 'Hacking Simulator';
+      document.querySelector('.subtitle').textContent = 'Access panel — demo';
+      document.querySelector('#btn-run').textContent = 'Run';
+      document.getElementById('btn-stop').textContent = 'Stop';
+      document.getElementById('btn-clear').textContent = 'Clear';
+      document.querySelector('.log-title').textContent = 'Execution logs';
+      document.querySelector('.footer').textContent = 'Made with ❤️ — Your Team';
+    } else if(v === 'es'){
+      document.querySelector('.title').textContent = 'Simulador de Hacking';
+      document.querySelector('.subtitle').textContent = 'Panel de acceso — demostración';
+      document.querySelector('#btn-run').textContent = 'Ejecutar';
+      document.getElementById('btn-stop').textContent = 'Parar';
+      document.getElementById('btn-clear').textContent = 'Limpiar';
+      document.querySelector('.log-title').textContent = 'Registros de ejecución';
+      document.querySelector('.footer').textContent = 'Hecho con ❤️ — Su Equipo';
+    }
+  });
+
+  document.addEventListener('keydown', ()=> document.body.classList.add('kbd'));
+  window.__appendLog = appendLine;
+})();
+</script>
+</body>
+</html>
